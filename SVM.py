@@ -15,6 +15,13 @@ import matplotlib.pyplot as plt
 
 # calculate kernel value
 def calcKernelValue(matrix_x, sample_x, kernelOption):
+    """
+    used to calculate the kernel function k(x, x_j), where x is (x_0, x_1, ... x_m), x_j is a m x 1 vector;
+    :param matrix_x: a m x m matrix of training x;
+    :param sample_x: a column vector of x;
+    :param kernelOption: signify a 'linear' or  a 'rbf' kernel function;
+    :return: a 1 x m vector of kernel values;
+    """
     kernelType = kernelOption[0]
     numSamples = matrix_x.shape[0]
     kernelValue = mat(zeros((numSamples, 1)))
@@ -35,6 +42,12 @@ def calcKernelValue(matrix_x, sample_x, kernelOption):
 
 # calculate kernel matrix given train set and kernel type
 def calcKernelMatrix(train_x, kernelOption):
+    """
+    output the kernel matrix of training set;
+    :param train_x: training features;
+    :param kernelOption: designate kernel function;
+    :return: an m x m kernel matrix;
+    """
     numSamples = train_x.shape[0]
     kernelMatrix = mat(zeros((numSamples, numSamples)))
     for i in xrange(numSamples):
@@ -45,16 +58,16 @@ def calcKernelMatrix(train_x, kernelOption):
 # define a struct just for storing variables and data
 class SVMStruct:
     def __init__(self, dataSet, labels, C, toler, kernelOption):
-        self.train_x = dataSet # each row stands for a sample
-        self.train_y = labels  # corresponding label
-        self.C = C             # slack variable
-        self.toler = toler     # termination condition for iteration
+        self.train_x = dataSet  # each row stands for a sample
+        self.train_y = labels   # corresponding label
+        self.C = C              # slack variable
+        self.toler = toler      # termination condition for iteration
         self.numSamples = dataSet.shape[0] # number of samples
-        self.alphas = mat(zeros((self.numSamples, 1))) # Lagrange factors for all samples
-        self.b = 0
-        self.errorCache = mat(zeros((self.numSamples, 2)))
+        self.alphas = mat(zeros((self.numSamples, 1)))  # Lagrange factors for all samples, initialized to all 0!!!
+        self.b = 0  # wTx + b, also initialized to 0 !!!
+        self.errorCache = mat(zeros((self.numSamples, 2)))  # initialized to zero matrix of m x 2;
         self.kernelOpt = kernelOption
-        self.kernelMat = calcKernelMatrix(self.train_x, self.kernelOpt)
+        self.kernelMat = calcKernelMatrix(self.train_x, self.kernelOpt)  # store kernel matrix of size m x m;
 
 
 # calculate the error for alpha k
