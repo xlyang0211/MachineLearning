@@ -71,7 +71,7 @@ class SVMStruct:
 
 
 # calculate the error for alpha k
-def calcError(svm, alpha_k):
+def calcError(svm, alpha_k):  # error is defined as (wTx + b - y)
     output_k = float(multiply(svm.alphas, svm.train_y).T * svm.kernelMat[:, alpha_k] + svm.b)
     error_k = output_k - float(svm.train_y[alpha_k])
     return error_k
@@ -84,14 +84,24 @@ def updateError(svm, alpha_k):
 
 
 # select alpha j which has the biggest step
+# Note that alpha j is the index of the j th alpha !!! It's not a good habit to name it as alpha j !!!
 def selectAlpha_j(svm, alpha_i, error_i):
+    """
+    This function is used to select alpha after having determined alpha i;
+    :param svm: A collection of data;
+    :param alpha_i: The first alpha that has been determined;
+    :param error_i: error corresponds to alpha i;
+    :return:
+    """
     svm.errorCache[alpha_i] = [1, error_i] # mark as valid(has been optimized)
     candidateAlphaList = nonzero(svm.errorCache[:, 0].A)[0] # mat.A return array
+    print "candidateAlphaList is: ", candidateAlphaList
     maxStep = 0; alpha_j = 0; error_j = 0
 
     # find the alpha with max iterative step
     if len(candidateAlphaList) > 1:
         for alpha_k in candidateAlphaList:
+            print "alpha_k is:", alpha_k
             if alpha_k == alpha_i:
                 continue
             error_k = calcError(svm, alpha_k)
@@ -124,7 +134,7 @@ def innerLoop(svm, alpha_i):
     # 2) if y[i]*E_i > 0, so yi*f(i) > 1, if alpha > 0, violate!(alpha = 0 will be correct)
     # 3) if y[i]*E_i = 0, so yi*f(i) = 1, it is on the boundary, needless optimized
     if (svm.train_y[alpha_i] * error_i < -svm.toler) and (svm.alphas[alpha_i] < svm.C) or\
-        (svm.train_y[alpha_i] * error_i > svm.toler) and (svm.alphas[alpha_i] > 0):
+        (svm.train_y[alpha_i] * error_i > svm.toler) and (svm.alphas[alpha_i] > 0):  # this is not the condition that select the worst i !!!
 
         # step 1: select alpha j
         alpha_j, error_j = selectAlpha_j(svm, alpha_i, error_i)
@@ -199,8 +209,8 @@ def trainSVM(train_x, train_y, C, toler, maxIter, kernelOption = ('rbf', 1.0)):
     svm = SVMStruct(mat(train_x), mat(train_y), C, toler, kernelOption)
 
     # start training
-    entireSet = True
-    alphaPairsChanged = 0
+    entireSet = True  # signify to choose alpha_i in all training set or in the un-chosen set;
+    alphaPairsChanged = 0  # count pairs of alpha_i/alpha_j changed, all alpha are initialized to 0;
     iterCount = 0
     # Iteration termination condition:
     #   Condition 1: reach max iteration
@@ -212,7 +222,7 @@ def trainSVM(train_x, train_y, C, toler, maxIter, kernelOption = ('rbf', 1.0)):
         # update alphas over all training examples
         if entireSet:
             for i in xrange(svm.numSamples):
-                alphaPairsChanged += innerLoop(svm, i)
+                alphaPairsChanged += innerLoop(svm, i)  # if i is not the worst i that break the KKT conditions, innerLoop returns 0;
             print '---iter:%d entire set, alpha pairs changed:%d' % (iterCount, alphaPairsChanged)
             iterCount += 1
         # update alphas over examples where alpha is not 0 & not C (not on boundary)
